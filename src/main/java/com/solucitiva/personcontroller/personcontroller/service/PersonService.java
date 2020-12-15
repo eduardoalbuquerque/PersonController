@@ -1,5 +1,7 @@
 package com.solucitiva.personcontroller.personcontroller.service;
 
+import com.solucitiva.personcontroller.personcontroller.DTO.PersonDTO;
+import com.solucitiva.personcontroller.personcontroller.PersonMapper.PersonMapper;
 import com.solucitiva.personcontroller.personcontroller.domain.Person;
 import com.solucitiva.personcontroller.personcontroller.repository.PersonRepository;
 import lombok.AllArgsConstructor;
@@ -7,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -14,22 +17,39 @@ public class PersonService {
 
     private PersonRepository repository;
 
-    public List<Person> listAll(){
-        return repository.findAll();
+    private final PersonMapper mapper = PersonMapper.INSTANCE;
+
+    public List<PersonDTO> listAll(){
+
+        List<Person> personList = this.repository.findAll();
+
+        return personList.stream().map(mapper::toDTO)
+                .collect(Collectors.toList());
+
     }
 
-    public Optional<Person> findById(Long personId){
+    public Optional<PersonDTO> findById(Long personId){
 
-        Optional personOptional = this.repository.findById(personId);
+        Optional<Person> optionalPerson = this.repository.findById(personId);
 
-        if(personOptional.isPresent())
-            return personOptional;
+        if(optionalPerson.isPresent()){
+            return Optional.of(mapper.toDTO(optionalPerson.get()));
+        }
 
         return Optional.empty();
     }
 
-    public Person save(Person person){
-        return repository.save(person);
+    public PersonDTO save(Person person){
+
+        Person personSaved =  repository.save(person);
+        return mapper.toDTO(personSaved);
+
+    }
+
+    public void delete(Long personId){
+
+        repository.deleteById(personId);
+
     }
 
 
